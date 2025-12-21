@@ -1,4 +1,4 @@
-import { createServer } from "http";
+import { createServer } from "node:http";
 import { connect } from "mongoose";
 import app from "./app.js";
 
