@@ -3,16 +3,19 @@ import { config } from "dotenv";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import PinoHttp from "pino-http";
 
 config({ path: "./config.env" });
 
-import globalErrorHandler from "./middlewares/errorController.js";
+import globalErrorHandler from "./middlewares/globalErrorHandler.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
+import logger from "./util/logger.js";
 
 const app = express();
 
 app.use(express.json());
+// app.use(PinoHttp({ logger }));
 app.use(helmet());
 app.use(cors());
 
@@ -22,7 +25,12 @@ if (process.env.NODE_ENV.trim() === "development") {
 
 app.use("/api/user", userRouter);
 
-app.use((req, _res, next) => {
+app.use((req, res, next) => {
+	// Silently ignore favicon requests
+	if (req.url === "/favicon.ico") {
+		return res.status(204).end();
+	}
+
 	next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

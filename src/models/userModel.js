@@ -34,10 +34,12 @@ userSchema.pre("save", async function () {
 	this.passwordChangedAt = Date.now();
 });
 
-userSchema.pre("save", function () {
+userSchema.pre("save", function (next) {
 	if (!this.isModified("password") || this.isNew) return;
 
 	this.passwordChangedAt = Date.now() - 1000;
+
+	next();
 });
 
 userSchema.methods.isPasswordCorrect = async (candidatePassword, userPassword) =>
