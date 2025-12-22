@@ -38,6 +38,11 @@ export const register = async (req, res, next) => {
 		return next(new AppError("Enter valid email", 400));
 	}
 
+	const userExists = await User.findOne({ email: filteredBody.email });
+	if (userExists) {
+		return next(new AppError("Email already exists!", 400));
+	}
+
 	delete filteredBody.passwordConfirm;
 	const newUser = await User.create(filteredBody);
 
@@ -48,7 +53,8 @@ export const register = async (req, res, next) => {
 
 	const subject = "Verify Your Email - Chat App";
 	const buttonText = "Verify Email Address";
-	const messageText = "Thank you for signing up! We're excited to have you on board. To complete your registration and start using Chat App, please verify your email address by clicking the button below.";
+	const messageText =
+		"Thank you for signing up! We're excited to have you on board. To complete your registration and start using Chat App, please verify your email address by clicking the button below.";
 
 	const emailTemplate = generateEmailTemplate(
 		newUser.name,
@@ -228,7 +234,8 @@ export const forgotPassword = async (req, res, next) => {
 
 	const subject = "Password Reset Request - Chat App";
 	const buttonText = "Reset Password";
-	const messageText = "We received a request to reset your password. Click the button below to set a new password for your account. If you didn't request this, you can safely ignore this email.";
+	const messageText =
+		"We received a request to reset your password. Click the button below to set a new password for your account. If you didn't request this, you can safely ignore this email.";
 
 	const emailTemplate = generateEmailTemplate(
 		user.name,
@@ -238,7 +245,12 @@ export const forgotPassword = async (req, res, next) => {
 		messageText,
 	);
 
-	await sendEmail(email, subject, `Hi ${user.name}, reset your password by visiting: ${resetURL}`, emailTemplate);
+	await sendEmail(
+		email,
+		subject,
+		`Hi ${user.name}, reset your password by visiting: ${resetURL}`,
+		emailTemplate,
+	);
 
 	res.status(200).json({
 		status: "success",
