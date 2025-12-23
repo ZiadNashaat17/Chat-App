@@ -1,11 +1,14 @@
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
 import { promisify } from "util";
-import User from "../models/userModel";
-import AppError from "../util/appError";
+import User from "../models/userModel.js";
+import AppError from "../util/appError.js";
+import logger from "../util/logger.js";
+
+let io;
 
 export const initSocket = httpServer => {
-	const io = new Server(httpServer, { cors: { origin: "*", methods: ["GET", "POST"] } });
+	io = new Server(httpServer, { cors: { origin: "*", methods: ["GET", "POST"] } });
 
 	io.use(async (socket, next) => {
 		try {
@@ -49,4 +52,13 @@ export const initSocket = httpServer => {
 			console.error("Socket error:", socket.id, error);
 		});
 	});
+
+	console.log("Socket.IO server initialized");
+};
+
+export const getIO = () => {
+	if (!io) {
+		throw new Error("Socket.io not initialized!");
+	}
+	return io;
 };

@@ -7,11 +7,11 @@ const messagesSchema = new Schema(
 			trim: true,
 			required: true,
 		},
-		originalMessage: {
-			type: String,
-			trim: true,
+		senderId: {
+			type: Schema.Types.ObjectId,
+			ref: "User",
 		},
-		userId: {
+		receiverId: {
 			type: Schema.Types.ObjectId,
 			ref: "User",
 		},
@@ -33,7 +33,7 @@ const messagesSchema = new Schema(
 	},
 );
 
-messagesSchema.index({ chatId: 1, seen: 1, userId: 1 });
+messagesSchema.index({ chatId: 1, seen: 1, senderId: 1 });
 
 const Messages = model("Messages", messagesSchema);
 

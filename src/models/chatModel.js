@@ -1,5 +1,5 @@
 import { model, Schema } from "mongoose";
-import AppError from "../util/appError";
+import AppError from "../util/appError.js";
 
 const chatSchema = new Schema(
 	{
@@ -26,6 +26,8 @@ chatSchema.pre("save", function (next) {
 
 	next();
 });
+
+chatSchema.index({ userIds: 1 });
 
 const Chat = model("Chat", chatSchema);
 
