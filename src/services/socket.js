@@ -1,6 +1,6 @@
+import { promisify } from "node:util";
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
-import { promisify } from "util";
 import User from "../models/userModel.js";
 import AppError from "../util/appError.js";
 import logger from "../util/logger.js";
@@ -8,7 +8,13 @@ import logger from "../util/logger.js";
 let io;
 
 export const initSocket = httpServer => {
-	io = new Server(httpServer, { cors: { origin: "*", methods: ["GET", "POST"] } });
+	io = new Server(httpServer, {
+		cors: {
+			origin: process.env.BASE_URL || "http://localhost:8000/",
+			credentials: true,
+			methods: ["GET", "POST"],
+		},
+	});
 
 	io.use(async (socket, next) => {
 		try {
@@ -29,31 +35,86 @@ export const initSocket = httpServer => {
 		}
 	});
 
-	io.on("Connection", socket => {
+	io.on("connection", async socket => {
 		if (socket.userId) {
-			console.log(`User ${socket.userId} connected (socket ${socket.id})`);
+			logger.info(`User ${socket.userId} connected (socket ${socket.id})`);
+
+			await User.findByIdAndUpdate(socket.userId, { status: "Online" });
+
+			socket.join(socket.userId);
+
+			socket.broadcast.emit("user-status-changed", {
+				userId: socket.userId,
+				status: "Online",
+			});
 		} else {
-			console.log(`Unauthenticated socket connected: ${socket.id}`);
+			logger.info(`Unauthenticated socket connected: ${socket.id}`);
 		}
 
-		console.log("Total connected clients:", io.engine.clientsCount);
+		logger.info(`Total connected clients: ${io.engine.clientsCount}`);
 
-		socket.on("disconnect", _reason => {
+		// Join a single chat room
+		socket.on("join-chat", async chatId => {
+			socket.join(chatId);
+			logger.info(`User ${socket.userId} joined chat ${chatId}`);
+
+			// const messages = await Messages.find({ chatId });
+			// messages.forEach(async m => {
+			// 	m.seen = true;
+			// 	await m.save();
+			// });
+		});
+
+		// // Join multiple chat rooms at once (when user first connects)
+		// socket.on("joinChats", chatIds => {
+		// 	if (Array.isArray(chatIds)) {
+		// 		chatIds.forEach(chatId => {
+		// 			socket.join(chatId);
+		// 		});
+		// 		logger.info(`User ${socket.userId} joined ${chatIds.length} chats`);
+		// 	}
+		// });
+
+		// Leave a chat room
+		socket.on("leave-chat", chatId => {
+			socket.leave(chatId);
+			logger.info(`User ${socket.userId} left chat ${chatId}`);
+		});
+
+		// // Typing indicator
+		// socket.on("typing", ({ chatId, isTyping }) => {
+		// 	socket.to(chatId).emit("userTyping", {
+		// 		chatId,
+		// 		userId: socket.userId,
+		// 		isTyping,
+		// 	});
+		// });
+
+		socket.on("disconnect", async _reason => {
 			if (socket.userId) {
-				console.log(`User ${socket.userId} disconnected`);
+				logger.info(`User ${socket.userId} disconnected`);
+
+				await User.findByIdAndUpdate(socket.userId, { status: "Offline" });
+
+				socket.leave(socket.userId);
+
+				socket.broadcast.emit("user-status-changed", {
+					userId: socket.userId,
+					status: "Offline",
+				});
 			} else {
-				console.log("Client disconnected:", socket.id);
+				logger.info(`Client disconnected: ${socket.id}`);
 			}
 
-			console.log("Total connected clients:", io.engine.clientsCount);
+			logger.info(`Total connected clients: ${io.engine.clientsCount}`);
 		});
 
 		socket.on("error", error => {
-			console.error("Socket error:", socket.id, error);
+			logger.error(`Socket error (${socket.id}):`, error);
 		});
 	});
 
-	console.log("Socket.IO server initialized");
+	logger.info("Socket.IO server initialized");
 };
 
 export const getIO = () => {

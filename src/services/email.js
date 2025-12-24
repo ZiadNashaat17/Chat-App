@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sgMail from "@sendgrid/mail";
 import { config } from "dotenv";
+import logger from "../util/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -21,7 +22,7 @@ const sendEmail = async (to, subject, text, html) => {
 
 	try {
 		await sgMail.send(msg);
-		console.log("Email sent successfully");
+		logger.info("Email sent successfully");
 	} catch (error) {
 		console.error("Error sending email: ", error);
 

@@ -23,10 +23,9 @@ const messagesSchema = new Schema(
 			type: Boolean,
 			default: false,
 		},
-		delivered: {
-			type: Boolean,
-			default: false,
-		},
+		seenAt: Date,
+		isEdited: { type: Boolean, default: false },
+		editedAt: Date,
 	},
 	{
 		timestamps: { createdAt: true },

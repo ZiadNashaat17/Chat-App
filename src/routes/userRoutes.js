@@ -17,6 +17,7 @@ router.get("/authenticate-user", authController.authenticateUser);
 
 router.use(authenticate);
 router.get("/", userController.getUser);
+router.get("/search-user/:input", userController.searchUser);
 router.get("/all", authorizeAdmin, userController.getAllUsers);
 router.patch("/update-user", userController.updateUser);
 router.patch("/auth/change-password", authController.changePassword);

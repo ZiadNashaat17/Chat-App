@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import { createClient } from "redis";
-import User from '../models/userModel.js';
+import User from "../models/userModel.js";
+import logger from "../util/logger.js";
 
 const client = createClient({ url: process.env.REDIS_URL });
 const exec = mongoose.Query.prototype.exec;
 
-client.on("error", err => console.log("Redis Client Error", err));
-client.on("connect", () => console.log("Redis Client Connected"));
+client.on("error", err => logger.info("Redis Client Error", err));
+client.on("connect", () => logger.info("Redis Client Connected"));
 
 await client.connect();
 
@@ -32,7 +33,7 @@ mongoose.Query.prototype.exec = async function () {
 	if (cacheValue) {
 		const doc = JSON.parse(cacheValue);
 
-		console.log("Serving from cache");
+		logger.info("Serving from cache");
 
 		// Use hydrate() to properly restore Mongoose documents with populated fields
 		return Array.isArray(doc) ? doc.map(d => this.model.hydrate(d)) : this.model.hydrate(doc);
@@ -57,12 +58,12 @@ export const cacheLoggedUser = user => {
 };
 
 export const getLoggedUser = async () => {
-    const key = "logged-user";
-    const user = await client.get(key);
-    
-    if (!user) return null;
-    
-    return User.hydrate(JSON.parse(user));
+	const key = "logged-user";
+	const user = await client.get(key);
+
+	if (!user) return null;
+
+	return User.hydrate(JSON.parse(user));
 };
 
 export const clearLoggedUser = () => {
@@ -75,7 +76,7 @@ export const closeRedis = async () => {
 	try {
 		if (client) {
 			await client.quit();
-			console.log("Redis disconnected");
+			logger.info("Redis disconnected");
 		}
 	} catch (error) {
 		console.error("Error closing Redis:", error);
