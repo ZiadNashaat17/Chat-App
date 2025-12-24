@@ -4,11 +4,12 @@ import jwt from "jsonwebtoken";
 import isEmail from "validator/lib/isEmail.js";
 
 import User from "../models/userModel.js";
+import sendEmail from "../services/email.js";
 import { cacheLoggedUser } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
-import sendEmail from "../util/email.js";
 import filterObj from "../util/filterObj.js";
 import generateEmailTemplate from "../util/generateEmailTemplate.js";
+import logger from "../util/logger.js";
 
 const signToken = id => {
 	return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
@@ -81,7 +82,7 @@ export const verifyEmail = async (req, res, next) => {
 	const verificationToken = req.params.verifyToken;
 
 	if (process.env.NODE_ENV?.trim() === "development") {
-		console.log(verificationToken);
+		logger.info(verificationToken);
 	}
 
 	const hashedVerificationToken = crypto
@@ -90,7 +91,7 @@ export const verifyEmail = async (req, res, next) => {
 		.digest("hex");
 
 	if (process.env.NODE_ENV?.trim() === "development") {
-		console.log({ hashedVerificationToken });
+		logger.info({ hashedVerificationToken });
 	}
 
 	const user = await User.findOne({

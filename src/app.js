@@ -1,9 +1,11 @@
+import path from "node:path";
 import cors from "cors";
 import { config } from "dotenv";
 import express from "express";
 import helmet from "helmet";
-// import morgan from "morgan";
-import PinoHttp from "pino-http";
+import morgan from "morgan";
+
+// import PinoHttp from "pino-http";
 
 config({ path: "./config.env" });
 
@@ -12,17 +14,27 @@ import chatRouter from "./routes/chatRoutes.js";
 import messagesRouter from "./routes/messagesRoutes.js";
 import userRouter from "./routes/userRoutes.js";
 import AppError from "./util/appError.js";
-import logger from "./util/logger.js";
+
+// import logger from "./util/logger.js";
 
 const app = express();
 
+const __dirname = import.meta.dirname;
+
 app.use(express.json());
-app.use(helmet());
+app.use(
+	helmet({
+		contentSecurityPolicy: false,
+	}),
+);
+
+app.use(express.static(path.join(__dirname, "../public")));
+
 app.use(cors());
 
 if (process.env.NODE_ENV.trim() === "development") {
-	app.use(PinoHttp({ logger }));
-	// app.use(morgan("dev"));
+	// app.use(PinoHttp({ logger }));
+	app.use(morgan("dev"));
 }
 
 app.use("/api/user", userRouter);

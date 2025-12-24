@@ -28,26 +28,28 @@ export const createChat = async (req, res, next) => {
 	});
 };
 
-export const getChat = async (req, res, next) => {
-	const chatId = req.params.chatId;
+// export const getChat = async (req, res, next) => {
+// 	const chatId = req.params.chatId;
 
-	const chat = await Chat.findById(chatId);
+// 	const chat = await Chat.findById(chatId);
 
-	if (!chat) {
-		return next(new AppError("No chat found!", 404));
-	}
+// 	if (!chat) {
+// 		return next(new AppError("No chat found!", 404));
+// 	}
 
-	res.status(200).json({
-		status: "success",
-		data: { chat },
-	});
-};
+// 	res.status(200).json({
+// 		status: "success",
+// 		data: { chat },
+// 	});
+// };
 
 // biome-ignore lint/correctness/noUnusedFunctionParameters: <>
 export const getAllChats = async (req, res, next) => {
 	const userId = req.user._id;
 
-	const chats = await Chat.find({ userIds: { $in: userId } });
+	const chats = await Chat.find({ userIds: { $in: userId } })
+		.populate("userIds", "name email status")
+		.populate("lastMessage");
 
 	res.status(200).json({
 		status: "success",

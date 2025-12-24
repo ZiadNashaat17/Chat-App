@@ -24,19 +24,17 @@ const handleJWTExpiredError = () =>
 	new AppError("Your token has expired. Please try logging in again!!", 401);
 
 const sendErrorDev = (err, res) => {
-	// console.log(err);
 	logger.error(err);
 
 	res.status(err.statusCode).json({
 		status: err.status,
 		message: err.message,
-		// error: err,
-		// stack: err.stack,
+		error: err,
+		stack: err.stack,
 	});
 };
 
 const sendErrorProd = (err, res) => {
-	// isOperational is a property to distinguish between operational errors (expected errors) and code bugs
 	logger.error(`${err.statusCode}, ${err.message}`);
 
 	if (err.isOperational) {
@@ -45,8 +43,6 @@ const sendErrorProd = (err, res) => {
 			message: err.message,
 		});
 	} else {
-		// logger.error("Error!");
-
 		res.status(500).json({
 			status: "error",
 			message: "Something went very wrong!",

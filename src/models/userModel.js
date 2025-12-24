@@ -13,9 +13,16 @@ const userSchema = new Schema({
 		lowercase: true,
 		validator: validator.isEmail,
 	},
+	username: {
+		type: String,
+		required: true,
+		unique: true,
+		trim: true,
+	},
 	password: { type: String, required: true, minlength: 8, select: false },
 	active: { type: Boolean, default: true },
 	role: { type: String, enum: ["user", "admin"], default: "user" },
+	status: { type: String, enum: ["Online", "Offline"] },
 	passwordChangedAt: {
 		type: Date,
 		select: false,

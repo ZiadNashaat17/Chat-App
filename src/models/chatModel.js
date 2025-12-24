@@ -11,7 +11,7 @@ const chatSchema = new Schema(
 		],
 		lastMessage: {
 			type: Schema.Types.ObjectId,
-			ref: "Message",
+			ref: "Messages",
 		},
 	},
 	{
@@ -20,11 +20,11 @@ const chatSchema = new Schema(
 );
 
 chatSchema.pre("save", function (next) {
-	if (!this.userIds || this.userIds !== 2) {
+	if (!this.userIds || this.userIds.length !== 2) {
 		return next(new AppError("Chat must be exactly 2 users", 400));
 	}
 
-	next();
+	// next();
 });
 
 chatSchema.index({ userIds: 1 });

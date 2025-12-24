@@ -5,7 +5,8 @@ import { clearHash, clearLoggedUser } from "../services/redisCache.js";
 import AppError from "../util/appError.js";
 import filterObj from "../util/filterObj.js";
 
-export const getAllUsers = async (_req, res, _next) => {
+// biome-ignore lint/correctness/noUnusedFunctionParameters: <>
+export const getAllUsers = async (_req, res, next) => {
 	const users = await User.find({ active: true });
 
 	res.status(200).json({
@@ -72,8 +73,35 @@ export const updateUser = async (req, res, next) => {
 	});
 };
 
-export const logout = async (req, res, _next) => {
+export const searchUser = async (req, res, next) => {
+	const { input } = req.params;
+
+	if (!input) {
+		return next(new AppError("Enter email or username to search!", 400));
+	}
+
+	let user;
+
+	if (input && isEmail(input)) {
+		user = await User.findOne({ email: input, active: true });
+	} else if (input) {
+		user = await User.findOne({ username: input, active: true });
+	}
+
+	if (!user) {
+		return next(new AppError("No user found!", 404));
+	}
+
+	res.status(200).json({
+		status: "success",
+		data: { user },
+	});
+};
+
+// biome-ignore lint/correctness/noUnusedFunctionParameters: <>
+export const logout = async (req, res, next) => {
 	clearHash(req.user._id);
+
 	clearLoggedUser();
 
 	res.status(200).json({
