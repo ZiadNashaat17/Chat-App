@@ -14,7 +14,7 @@ const router = Router();
 router.post("/send-message", authenticate, validateMessages, createMessage);
 router.get("/:chatId", authenticate, getMessages);
 router.patch("/:messageId/read", authenticate, markAsRead);
-router.patch("/:messageId", authenticate, validateMessages, editMessage);
+router.patch("/:messageId", authenticate, editMessage);
 router.delete("/:messageId", authenticate, deleteMessage);
 
 export default router;
