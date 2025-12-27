@@ -9,23 +9,21 @@ const chatSchema = new Schema(
 				ref: "User",
 			},
 		],
+		chatType: { type: String, enum: ["Private", "Group"] },
 		lastMessage: {
 			type: Schema.Types.ObjectId,
 			ref: "Messages",
 		},
+		groupAdmin: {
+			type: Schema.Types.ObjectId,
+			ref: "User",
+		},
+		groupName: String,
 	},
 	{
 		timestamps: { createdAt: true, updatedAt: false },
 	},
 );
-
-chatSchema.pre("save", function (next) {
-	if (!this.userIds || this.userIds.length !== 2) {
-		return next(new AppError("Chat must be exactly 2 users", 400));
-	}
-
-	// next();
-});
 
 chatSchema.index({ userIds: 1 });
 

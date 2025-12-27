@@ -24,7 +24,8 @@ export const createMessage = async (req, res, next) => {
 	chat.lastMessage = newMessage._id;
 	await chat.save();
 
-	await newMessage.populate("senderId", "name");
+	await newMessage.populate("senderId", "name status");
+	await newMessage.populate("receiverId", "name status");
 
 	// Emit to socket room
 	const io = getIO();
@@ -106,7 +107,7 @@ export const markAsRead = async (req, res, next) => {
 };
 
 export const editMessage = async (req, res, next) => {
-	const { message: newMessage } = req.body;
+	const { newMessage } = req.body;
 
 	const message = await Messages.findById(req.params.messageId);
 
